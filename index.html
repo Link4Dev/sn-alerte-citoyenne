@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Alerte Citoyenne — Signaler un incident</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="brand">
+    <span class="brand-mark">●</span>
+    <div>
+      <h1>Alerte Citoyenne</h1>
+      <p class="tagline">Coupures, inondations, incidents — signalés en temps réel</p>
+    </div>
+  </div>
+  <div class="stats" id="stats">
+    <div><strong id="count-total">0</strong><span>signalements</span></div>
+  </div>
+</header>
+
+<main>
+  <section class="panel form-panel">
+    <h2>Signaler un incident</h2>
+    <form id="report-form">
+      <label>Type d'incident</label>
+      <div class="type-choice">
+        <label class="type-option" data-type="coupure">
+          <input type="radio" name="type" value="coupure" required>
+          <span class="dot dot-coupure"></span> Coupure de courant
+        </label>
+        <label class="type-option" data-type="inondation">
+          <input type="radio" name="type" value="inondation">
+          <span class="dot dot-inondation"></span> Zone inondée
+        </label>
+        <label class="type-option" data-type="autre">
+          <input type="radio" name="type" value="autre">
+          <span class="dot dot-autre"></span> Autre incident
+        </label>
+      </div>
+
+      <label for="description">Description</label>
+      <textarea id="description" placeholder="Ex : Quartier plongé dans le noir depuis ce matin, rue bloquée par l'eau…" required></textarea>
+
+      <label>Emplacement</label>
+      <div class="location-row">
+        <button type="button" id="locate-btn">Utiliser ma position</button>
+        <span id="location-status">ou touchez la carte pour placer le repère</span>
+      </div>
+
+      <button type="submit" class="submit-btn">Envoyer le signalement</button>
+    </form>
+    <div id="alert-authorities" class="alert-box hidden">
+      <p>Signalement enregistré. Vous pouvez aussi prévenir directement les autorités :</p>
+      <a id="whatsapp-link" href="#" target="_blank" class="wa-btn">Alerter par WhatsApp</a>
+    </div>
+  </section>
+
+  <section class="panel map-panel">
+    <div id="map"></div>
+  </section>
+
+  <section class="panel list-panel">
+    <h2>Derniers signalements</h2>
+    <ul id="report-list"></ul>
+  </section>
+</main>
+
+<footer>
+  <p>Application citoyenne — les données sont partagées publiquement pour informer la communauté et les autorités locales.</p>
+</footer>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
