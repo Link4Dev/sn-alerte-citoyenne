@@ -18,6 +18,9 @@ L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
   attribution: "&copy; OpenStreetMap"
 }).addTo(map);
 
+document.getElementById("contact-whatsapp").href =
+  `https://wa.me/${AUTHORITY_WHATSAPP_NUMBER}?text=${encodeURIComponent("Bonjour, je vous contacte au sujet d'Alerte Citoyenne.")}`;
+
 let selectedLatLng = null;
 let marker = null;
 
