@@ -34,15 +34,36 @@
           <input type="radio" name="type" value="coupure" required>
           <span class="dot dot-coupure"></span> Coupure de courant
         </label>
+        <label class="type-option" data-type="eau">
+          <input type="radio" name="type" value="eau">
+          <span class="dot dot-eau"></span> Coupure d'eau
+        </label>
         <label class="type-option" data-type="inondation">
           <input type="radio" name="type" value="inondation">
           <span class="dot dot-inondation"></span> Zone inondée
         </label>
+        <label class="type-option" data-type="voirie">
+          <input type="radio" name="type" value="voirie">
+          <span class="dot dot-voirie"></span> Route endommagée / nid-de-poule
+        </label>
+        <label class="type-option" data-type="dechets">
+          <input type="radio" name="type" value="dechets">
+          <span class="dot dot-dechets"></span> Déchets non collectés
+        </label>
+        <label class="type-option" data-type="incendie">
+          <input type="radio" name="type" value="incendie">
+          <span class="dot dot-incendie"></span> Incendie
+        </label>
+        <label class="type-option" data-type="securite">
+          <input type="radio" name="type" value="securite">
+          <span class="dot dot-securite"></span> Insécurité
+        </label>
         <label class="type-option" data-type="autre">
           <input type="radio" name="type" value="autre">
-          <span class="dot dot-autre"></span> Autre incident
+          <span class="dot dot-autre"></span> Autre (précisez)
         </label>
       </div>
+      <input type="text" id="custom-type" placeholder="Précisez le type d'incident" class="hidden" style="width:100%; padding:8px; margin-top:8px; border:1px solid var(--line); border-radius:6px;">
 
       <label for="description">Description</label>
       <textarea id="description" placeholder="Ex : Quartier plongé dans le noir depuis ce matin, rue bloquée par l'eau…" required></textarea>
