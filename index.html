@@ -19,13 +19,19 @@
       <p class="tagline">Coupures, inondations, incidents — signalés en temps réel</p>
     </div>
   </div>
+  <nav class="top-nav">
+    <a href="#form">Signaler</a>
+    <a href="#map">Carte</a>
+    <a href="#list">Signalements</a>
+    <a href="#about">À propos</a>
+  </nav>
   <div class="stats" id="stats">
     <div><strong id="count-total">0</strong><span>signalements</span></div>
   </div>
 </header>
 
 <main>
-  <section class="panel form-panel">
+  <section class="panel form-panel" id="form">
     <h2>Signaler un incident</h2>
     <form id="report-form">
       <label>Type d'incident</label>
@@ -82,17 +88,17 @@
     </div>
   </section>
 
-  <section class="panel map-panel">
+  <section class="panel map-panel" id="map-panel">
     <div id="map"></div>
   </section>
 
-  <section class="panel list-panel">
+  <section class="panel list-panel" id="list">
     <h2>Derniers signalements</h2>
     <ul id="report-list"></ul>
   </section>
 </main>
 
-<footer>
+<footer id="about">
   <div class="about">
     <h2>À propos de ce projet</h2>
     <p>
@@ -111,6 +117,36 @@
       <a href="https://github.com/Link4dev/sn-alerte-citoyenne/blob/main/GUIDE-ASC.md" target="_blank" class="repo-btn repo-btn-outline">Créer la plateforme de mon quartier</a>
     </p>
   </div>
+
+  <div class="tech-section">
+    <h2>Notre positionnement</h2>
+    <p>
+      Ce projet est construit autour de trois convictions : le <strong>code ouvert</strong> (open source), pour que
+      chaque communauté puisse s'approprier et adapter l'outil ; les <strong>données ouvertes</strong> (open data),
+      pour que les signalements citoyens restent transparents et accessibles à tous ; et l'<strong>intelligence
+      artificielle</strong>, utilisée pour accélérer le développement d'outils civiques utiles, sans dépendance à un
+      fournisseur unique.
+    </p>
+    <div class="tech-badges">
+      <div class="tech-badge">
+        <span class="tech-icon">✦</span>
+        <span>Claude Code</span>
+      </div>
+      <div class="tech-badge">
+        <span class="tech-icon">🔥</span>
+        <span>Firebase</span>
+      </div>
+      <div class="tech-badge">
+        <span class="tech-icon">🐙</span>
+        <span>GitHub</span>
+      </div>
+      <div class="tech-badge">
+        <span class="tech-icon">🌐</span>
+        <span>Open Data</span>
+      </div>
+    </div>
+  </div>
+
   <p class="fine-print">Application citoyenne — les données sont partagées publiquement pour informer la communauté et les autorités locales.</p>
 </footer>
 
