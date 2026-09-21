@@ -157,8 +157,9 @@ html{scroll-behavior:smooth; scroll-padding-top:90px;}
 }
 
 .tech-section{
-  max-width:720px; margin:0 auto 20px; text-align:left;
-  padding-top:16px; border-top:1px solid var(--line);
+  max-width:720px; margin:24px auto 20px; text-align:left;
+  padding:20px 24px; border-radius:10px;
+  background:#F1F6F0; border:1px solid var(--accent);
 }
 .tech-section h2{font-size:1.1rem; margin-bottom:10px;}
 .tech-section p{font-size:0.88rem; line-height:1.5; color:#33433d;}
