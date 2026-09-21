@@ -121,3 +121,22 @@ textarea{
   .form-panel{grid-row:auto;}
   .list-panel{grid-column:1;}
 }
+
+footer{
+  padding:28px; border-top:1px solid var(--line); margin-top:12px;
+}
+.about{
+  max-width:720px; margin:0 auto 20px; text-align:left;
+}
+.about h2{font-size:1.3rem; margin-bottom:10px;}
+.about p{font-size:0.92rem; line-height:1.5; color:#33433d;}
+.repo-btn{
+  display:inline-block; margin:10px 10px 0 0; padding:9px 16px; border-radius:6px;
+  background:var(--accent); color:white; text-decoration:none; font-weight:600; font-size:0.85rem;
+}
+.repo-btn-outline{
+  background:transparent; color:var(--accent); border:1px solid var(--accent);
+}
+.fine-print{
+  text-align:center; font-size:0.8rem; color:#8a9490; max-width:720px; margin:0 auto;
+}

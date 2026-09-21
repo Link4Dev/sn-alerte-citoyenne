@@ -1,8 +1,14 @@
 # Alerte Citoyenne
 
-Application web simple pour signaler des coupures de courant, zones inondées et autres incidents sur une carte partagée, avec possibilité d'alerter les autorités par WhatsApp.
+Plateforme web **libre et open source** pour signaler des coupures de courant, zones inondées et autres incidents sur une carte partagée, avec possibilité d'alerter les autorités par WhatsApp.
 
-## 1. Créer le backend (gratuit, 5 minutes)
+Le projet est pensé pour être dupliqué : chaque commune, quartier ou **Association Sportive et Culturelle (ASC)** peut créer sa propre version indépendante pour animer sa communauté locale.
+
+- 👉 Vous voulez créer la plateforme de votre quartier ou de votre ASC ? Voir **[GUIDE-ASC.md](GUIDE-ASC.md)**
+- 👉 Vous voulez contribuer au code d'origine ? Voir **[CONTRIBUTING.md](CONTRIBUTING.md)**
+- 📄 Licence : [MIT](LICENSE) — utilisation libre et gratuite
+
+## Installation détaillée (pour le dépôt d'origine)
 
 L'app est un simple site statique, donc il faut un endroit pour stocker les signalements en ligne :
 
