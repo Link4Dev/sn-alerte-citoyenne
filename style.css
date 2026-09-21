@@ -3,7 +3,12 @@
   --ink:#20302B;
   --line:#E2D9C7;
   --coupure:#E8A33D;
+  --eau:#5B8FB0;
   --inondation:#2E6F95;
+  --voirie:#8A6D3B;
+  --dechets:#6B7A3F;
+  --incendie:#C1440E;
+  --securite:#7A3B69;
   --autre:#B23A2E;
   --accent:#3F6B4D;
   --card:#FFFFFF;
@@ -62,7 +67,12 @@ textarea{
 }
 .dot{width:12px; height:12px; border-radius:50%; display:inline-block;}
 .dot-coupure{background:var(--coupure);}
+.dot-eau{background:var(--eau);}
 .dot-inondation{background:var(--inondation);}
+.dot-voirie{background:var(--voirie);}
+.dot-dechets{background:var(--dechets);}
+.dot-incendie{background:var(--incendie);}
+.dot-securite{background:var(--securite);}
 .dot-autre{background:var(--autre);}
 
 .location-row{display:flex; align-items:center; gap:10px; flex-wrap:wrap;}
@@ -97,7 +107,12 @@ textarea{
   border-radius:20px; color:white; margin-right:8px;
 }
 .tag-coupure{background:var(--coupure);}
+.tag-eau{background:var(--eau);}
 .tag-inondation{background:var(--inondation);}
+.tag-voirie{background:var(--voirie);}
+.tag-dechets{background:var(--dechets);}
+.tag-incendie{background:var(--incendie);}
+.tag-securite{background:var(--securite);}
 .tag-autre{background:var(--autre);}
 .li-time{color:#8a9490; font-size:0.78rem; display:block; margin-top:2px;}
 
