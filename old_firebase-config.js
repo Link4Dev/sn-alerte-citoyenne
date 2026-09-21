@@ -4,17 +4,17 @@
 // 4) Remplacez les valeurs ci-dessous par les vôtres
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCcyEgt-daXmfxYSKrOescDvybtNiHlvqY",
-  authDomain: "snalertes-citoyennes.firebaseapp.com",
-  databaseURL: "https://snalertes-citoyennes-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "snalertes-citoyennes",
-  storageBucket: "snalertes-citoyennes.firebasestorage.app",
-  messagingSenderId: "299219530530",
-  appId: "1:299219530530:web:f1426c1dd739bfdbce6b7b"
+  apiKey: "VOTRE_API_KEY",
+  authDomain: "VOTRE_PROJET.firebaseapp.com",
+  databaseURL: "https://VOTRE_PROJET-default-rtdb.firebaseio.com",
+  projectId: "VOTRE_PROJET",
+  storageBucket: "VOTRE_PROJET.appspot.com",
+  messagingSenderId: "000000000000",
+  appId: "VOTRE_APP_ID"
 };
 
 // Numéro WhatsApp des autorités locales à alerter (format international, sans "+")
-const AUTHORITY_WHATSAPP_NUMBER = "221776346673";
+const AUTHORITY_WHATSAPP_NUMBER = "221771234567";
 
 // Centre par défaut de la carte (Dakar). Changez si votre zone est différente.
 const MAP_CENTER = [14.6928, -17.4467];
