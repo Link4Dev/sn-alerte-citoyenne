@@ -45,13 +45,42 @@ git push -u origin main
 
 ## Comment ça marche
 
-- **Carte** (Leaflet + OpenStreetMap) : les utilisateurs cliquent sur la carte ou utilisent leur position pour situer l'incident.
-- **Formulaire** : type d'incident (coupure, inondation, autre) + description.
+- **Carte** (Leaflet + OpenStreetMap) : les utilisateurs cliquent sur la carte ou utilisent leur position pour situer l'incident. Une carte de chaleur est disponible en alternative aux points.
+- **Formulaire** : type d'incident, niveau d'urgence (faible/moyenne/élevée) + description.
 - **Stockage** : chaque signalement est enregistré dans Firebase Realtime Database et apparaît instantanément sur la carte de tous les visiteurs.
-- **Alerte aux autorités** : après l'envoi, un bouton ouvre WhatsApp avec un message prérempli (type, description, lien Google Maps) vers le numéro configuré.
+- **Tableau de bord** : total des signalements, répartition par urgence et par type, tendance sur 14 jours.
+- **Alerte aux autorités** : après l'envoi, un bouton ouvre WhatsApp avec un message prérempli vers le numéro configuré.
+- **Suivi du traitement** : les relais connectés (voir ci-dessous) peuvent indiquer si les autorités ont répondu et si une solution a été trouvée.
+
+## Activer la connexion des relais (Admin / Démo)
+
+Pour que seuls vos relais désignés puissent modifier le statut d'un signalement :
+
+1. Dans la console Firebase : **Build > Authentication > Get started**.
+2. Onglet **Sign-in method** > activez **E-mail/Mot de passe**.
+3. Onglet **Users** > **Add user** : créez un compte `admin`, par exemple `admin@votredomaine.sn` avec un mot de passe fort. Créez aussi un compte `demo@votredomaine.sn` avec un mot de passe simple si vous voulez faire des démonstrations sans exposer le vrai compte admin.
+4. Dans **Build > Realtime Database > Rules**, remplacez les règles par :
+
+```json
+{
+  "rules": {
+    "signalements": {
+      ".read": true,
+      ".indexOn": ["timestamp"],
+      "$id": {
+        ".write": "!data.exists() || auth != null"
+      }
+    }
+  }
+}
+```
+
+Cela permet à tout le monde de créer un signalement, mais seuls les comptes connectés peuvent le modifier (réponse des autorités, statut).
+
+5. Sur le site, dans le menu **Communauté > Connexion**, connectez-vous avec le compte admin ou démo. Une fois connecté, vous pouvez changer votre mot de passe directement depuis cette section.
 
 ## Pour aller plus loin
 
-- Sécuriser les règles Firebase (limiter l'écriture, modérer le contenu).
 - Ajouter l'envoi automatique d'un e-mail via un service comme Formspree ou une Cloud Function.
-- Ajouter un filtre par type ou par date sur la liste des signalements.
+- Ajouter un filtre par type, par urgence ou par date sur la liste des signalements.
+- Exporter les données du tableau de bord en CSV pour les partenaires.

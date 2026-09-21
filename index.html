@@ -22,6 +22,7 @@
   <nav class="top-nav">
     <a href="#form">Signaler</a>
     <a href="#map">Carte</a>
+    <a href="#dashboard">Tableau de bord</a>
     <a href="#list">Signalements</a>
     <a href="#about">À propos</a>
     <details class="nav-dropdown">
@@ -32,6 +33,7 @@
         <a href="https://facebook.com/VOTRE-PAGE-A-COMPLETER" target="_blank">Facebook</a>
         <a href="#contact">Contact</a>
         <a href="#events">Événements</a>
+        <a href="#admin">Connexion</a>
       </div>
     </details>
   </nav>
@@ -81,8 +83,24 @@
       </div>
       <input type="text" id="custom-type" placeholder="Précisez le type d'incident" class="hidden" style="width:100%; padding:8px; margin-top:8px; border:1px solid var(--line); border-radius:6px;">
 
-      <label for="description">Description</label>
+      <label>Description</label>
       <textarea id="description" placeholder="Ex : Quartier plongé dans le noir depuis ce matin, rue bloquée par l'eau…" required></textarea>
+
+      <label>Niveau d'urgence</label>
+      <div class="urgency-choice">
+        <label class="urgency-option urgency-faible">
+          <input type="radio" name="urgency" value="faible" required>
+          🟢 Faible
+        </label>
+        <label class="urgency-option urgency-moyenne">
+          <input type="radio" name="urgency" value="moyenne">
+          🟡 Moyenne
+        </label>
+        <label class="urgency-option urgency-elevee">
+          <input type="radio" name="urgency" value="elevee">
+          🔴 Élevée
+        </label>
+      </div>
 
       <label>Emplacement</label>
       <div class="location-row">
@@ -99,7 +117,34 @@
   </section>
 
   <section class="panel map-panel" id="map-panel">
+    <div class="map-toolbar">
+      <button type="button" class="map-view-btn active" data-view="points">Points</button>
+      <button type="button" class="map-view-btn" data-view="heat">Carte de chaleur</button>
+    </div>
     <div id="map"></div>
+  </section>
+
+  <section class="panel dashboard-panel" id="dashboard">
+    <h2>Tableau de bord</h2>
+    <div class="dash-grid">
+      <div class="dash-card dash-total">
+        <strong id="dash-total">0</strong>
+        <span>signalements au total</span>
+      </div>
+      <div class="dash-card dash-urgency">
+        <div class="dash-urgency-row"><span class="dash-dot" style="background:#3F6B4D"></span>Faible <strong id="dash-faible">0</strong></div>
+        <div class="dash-urgency-row"><span class="dash-dot" style="background:#E0B400"></span>Moyenne <strong id="dash-moyenne">0</strong></div>
+        <div class="dash-urgency-row"><span class="dash-dot" style="background:#B23A2E"></span>Élevée <strong id="dash-elevee">0</strong></div>
+      </div>
+      <div class="dash-card dash-types">
+        <h3>Par type d'incident</h3>
+        <div id="dash-type-bars"></div>
+      </div>
+      <div class="dash-card dash-trend">
+        <h3>Tendance — 14 derniers jours</h3>
+        <div id="dash-trend-chart" class="trend-chart"></div>
+      </div>
+    </div>
   </section>
 
   <section class="panel list-panel" id="list">
@@ -116,6 +161,32 @@
   <section class="panel" id="events">
     <h2>Événements</h2>
     <p id="events-placeholder">Aucun événement prévu pour le moment — suivez notre page Facebook pour les prochaines annonces.</p>
+  </section>
+
+  <section class="panel" id="admin">
+    <h2>Connexion relais / autorités</h2>
+    <p class="admin-note">Réservé aux relais désignés — permet de mettre à jour la réponse des autorités et le statut de résolution des signalements.</p>
+
+    <div id="login-box">
+      <label for="admin-email">E-mail</label>
+      <input type="email" id="admin-email" placeholder="admin@exemple.sn">
+      <label for="admin-password">Mot de passe</label>
+      <input type="password" id="admin-password">
+      <button type="button" id="login-btn" class="submit-btn">Se connecter</button>
+      <p id="login-error" class="admin-error hidden"></p>
+    </div>
+
+    <div id="account-box" class="hidden">
+      <p>Connecté en tant que <strong id="account-email"></strong></p>
+      <button type="button" id="logout-btn">Se déconnecter</button>
+
+      <div class="password-change">
+        <label for="new-password">Changer mon mot de passe</label>
+        <input type="password" id="new-password" placeholder="Nouveau mot de passe (min. 6 caractères)">
+        <button type="button" id="change-password-btn" class="submit-btn">Mettre à jour le mot de passe</button>
+        <p id="password-change-msg" class="admin-error hidden"></p>
+      </div>
+    </div>
   </section>
 </main>
 
@@ -176,8 +247,10 @@
 </footer>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="firebase-config.js"></script>
 <script src="app.js"></script>
 </body>
