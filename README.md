@@ -52,6 +52,26 @@ git push -u origin main
 - **Alerte aux autorités** : après l'envoi, un bouton ouvre WhatsApp avec un message prérempli vers le numéro configuré.
 - **Suivi du traitement** : les relais connectés (voir ci-dessous) peuvent indiquer si les autorités ont répondu et si une solution a été trouvée.
 
+## Activer les photos dans les signalements (Firebase Storage)
+
+1. Dans la console Firebase : **Build > Storage > Get started**.
+2. Choisissez une région (la même que votre Realtime Database de préférence), puis démarrez en **mode test**.
+3. Dans l'onglet **Rules** de Storage, utilisez :
+
+```
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /photos/{fileName} {
+      allow read: if true;
+      allow write: if true;
+    }
+  }
+}
+```
+
+Comme pour la base de données, ceci reste ouvert pour la phase pilote — à restreindre plus tard si besoin (limiter la taille des fichiers, exiger une authentification pour l'upload, etc.).
+
 ## Activer la connexion des relais (Admin / Démo)
 
 Pour que seuls vos relais désignés puissent modifier le statut d'un signalement :

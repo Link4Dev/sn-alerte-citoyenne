@@ -109,6 +109,10 @@
         <span id="location-status">ou touchez la carte pour placer le repère</span>
       </div>
 
+      <label for="photo-input">Photo (facultatif)</label>
+      <input type="file" id="photo-input" accept="image/*" capture="environment">
+      <div id="photo-preview" class="hidden"><img id="photo-preview-img" alt="Aperçu de la photo"></div>
+
       <button type="submit" class="submit-btn">Envoyer le signalement</button>
     </form>
     <div id="alert-authorities" class="alert-box hidden">
@@ -170,6 +174,14 @@
       <div class="dash-card dash-total">
         <strong id="dash-total">0</strong>
         <span>signalements au total</span>
+      </div>
+      <div class="dash-card dash-rate">
+        <strong id="dash-response-rate">0 %</strong>
+        <span>taux de réponse des autorités</span>
+      </div>
+      <div class="dash-card dash-rate">
+        <strong id="dash-resolution-rate">0 %</strong>
+        <span>taux de résolution</span>
       </div>
       <div class="dash-card dash-urgency">
         <div class="dash-urgency-row"><span class="dash-dot" style="background:#3F6B4D"></span>Faible <strong id="dash-faible">0</strong></div>
@@ -239,6 +251,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 <script src="firebase-config.js"></script>
 <script src="app.js"></script>
 </body>

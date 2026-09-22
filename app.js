@@ -1,6 +1,7 @@
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 const auth = firebase.auth();
+const storage = firebase.storage();
 const reportsRef = db.ref("signalements");
 
 const COLORS = {
@@ -76,6 +77,38 @@ document.getElementById("locate-btn").addEventListener("click", () => {
   });
 });
 
+const photoInput = document.getElementById("photo-input");
+const photoPreview = document.getElementById("photo-preview");
+const photoPreviewImg = document.getElementById("photo-preview-img");
+
+photoInput.addEventListener("change", () => {
+  const file = photoInput.files[0];
+  if (!file) { photoPreview.classList.add("hidden"); return; }
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    photoPreviewImg.src = e.target.result;
+    photoPreview.classList.remove("hidden");
+  };
+  reader.readAsDataURL(file);
+});
+
+function compressImage(file, maxWidth = 900, quality = 0.7) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    const reader = new FileReader();
+    reader.onload = (e) => { img.src = e.target.result; };
+    img.onload = () => {
+      const scale = Math.min(1, maxWidth / img.width);
+      const canvas = document.createElement("canvas");
+      canvas.width = img.width * scale;
+      canvas.height = img.height * scale;
+      canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
+      canvas.toBlob((blob) => resolve(blob), "image/jpeg", quality);
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
 function makeIcon(type, urgency) {
   const ring = URGENCY[urgency] ? URGENCY[urgency].color : "#ffffff";
   return L.divIcon({
@@ -107,12 +140,23 @@ document.getElementById("report-form").addEventListener("submit", (e) => {
     timestamp: Date.now()
   };
 
-  reportsRef.push(report).then(() => {
+  reportsRef.push(report).then((ref) => {
     e.target.reset();
     customTypeInput.classList.add("hidden");
+    photoPreview.classList.add("hidden");
     if (marker) map.removeLayer(marker);
     selectedLatLng = null;
     document.getElementById("location-status").textContent = "ou touchez la carte pour placer le repère";
+
+    const file = photoInput.files[0];
+    if (file) {
+      compressImage(file).then((blob) => {
+        const photoRef = storage.ref(`photos/${ref.key}.jpg`);
+        photoRef.put(blob).then(() => photoRef.getDownloadURL()).then((url) => {
+          ref.update({ photoURL: url });
+        }).catch(() => { /* upload photo facultatif : on continue sans bloquer le signalement */ });
+      });
+    }
 
     const msg = encodeURIComponent(
       `Alerte citoyenne — ${label} (urgence : ${URGENCY[urgency].label})\n${description}\nLocalisation : https://www.google.com/maps?q=${report.lat},${report.lng}`
@@ -217,7 +261,12 @@ function renderReportItem(id, r) {
     </div>
     ${r.description}
     <span class="li-time">${time}</span>
+    ${r.photoURL ? `<img class="li-photo" src="${r.photoURL}" alt="Photo du signalement">` : ""}
     ${controls}
+    <div class="share-row">
+      <a class="share-btn" target="_blank" href="https://wa.me/?text=${encodeURIComponent(`🚨 ${label} signalé via Alerte Citoyenne : ${r.description} — ${window.location.href.split('#')[0]}`)}">Partager WhatsApp</a>
+      <a class="share-btn" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href.split('#')[0])}">Partager Facebook</a>
+    </div>
   `;
 
   if (isAdmin) {
@@ -242,6 +291,12 @@ function renderList() {
 function updateDashboard() {
   const values = Object.values(reportsData);
   document.getElementById("dash-total").textContent = values.length;
+
+  const total = values.length || 1;
+  const responded = values.filter((r) => r.reponseAutorites === "oui").length;
+  const resolved = values.filter((r) => r.statutResolution === "oui").length;
+  document.getElementById("dash-response-rate").textContent = `${Math.round((responded / total) * 100)} %`;
+  document.getElementById("dash-resolution-rate").textContent = `${Math.round((resolved / total) * 100)} %`;
 
   const byUrgency = { faible: 0, moyenne: 0, elevee: 0 };
   const byType = {};
@@ -294,7 +349,7 @@ function refreshMapLayers() {
   Object.values(reportsData).forEach((r) => {
     const m = L.marker([r.lat, r.lng], { icon: makeIcon(r.type, r.urgency) });
     const urg = URGENCY[r.urgency] || URGENCY.faible;
-    m.bindPopup(`<strong>${r.label}</strong><br>${r.description}<br><em>Urgence : ${urg.label}</em>`);
+    m.bindPopup(`<strong>${r.label}</strong><br>${r.description}<br><em>Urgence : ${urg.label}</em>${r.photoURL ? `<br><img src="${r.photoURL}" style="max-width:180px;border-radius:6px;margin-top:6px;">` : ""}`);
     m.addTo(markersLayer);
     heatPoints.push([r.lat, r.lng, urg.weight]);
   });
