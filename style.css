@@ -119,9 +119,48 @@ textarea{
 .li-time{color:#8a9490; font-size:0.78rem; display:block; margin-top:2px;}
 
 @media (max-width: 860px){
-  main{grid-template-columns:1fr;}
-  .form-panel{grid-row:auto;}
+  .site-header{
+    flex-direction:column; align-items:flex-start; padding:14px 18px;
+  }
+  .top-nav{gap:14px; font-size:0.85rem;}
+  .stats{align-self:flex-start;}
+  html{scroll-padding-top:170px;}
+
+  main{grid-template-columns:1fr; padding:14px 16px; gap:14px;}
+  .form-panel{grid-row:auto; grid-column:1;}
+  .map-panel{grid-column:1;}
+  .about-panel{grid-column:1;}
+  .dashboard-panel{grid-column:1;}
   .list-panel{grid-column:1;}
+  .panel{padding:16px;}
+
+  #map{height:300px;}
+  .map-toolbar{flex-wrap:wrap;}
+
+  .dash-grid{grid-template-columns:1fr;}
+  .type-bar-label{width:110px; font-size:0.75rem;}
+  .type-bar-row{flex-wrap:wrap;}
+
+  .urgency-choice{flex-direction:column;}
+  .type-choice{gap:6px;}
+
+  .tech-badges{gap:8px;}
+  .tech-badge{font-size:0.78rem; padding:6px 10px;}
+
+  .admin-controls{flex-direction:column; gap:8px;}
+  .share-row{flex-wrap:wrap;}
+
+  .nav-dropdown-menu{left:auto; right:0;}
+}
+
+@media (max-width: 480px){
+  h1{font-size:1.4rem;}
+  .tagline{font-size:0.8rem;}
+  .about h2, .tech-section h2{font-size:1.1rem;}
+  .dash-total strong{font-size:2.1rem;}
+  .dash-rate strong{font-size:1.7rem;}
+  #map{height:240px;}
+  .repo-btn{display:block; margin:8px 0; text-align:center;}
 }
 
 footer{
@@ -279,11 +318,6 @@ html{scroll-behavior:smooth; scroll-padding-top:90px;}
 }
 .password-change{margin-top:20px; padding-top:16px; border-top:1px solid var(--line);}
 .admin-error{font-size:0.82rem; color:var(--autre); margin-top:8px;}
-
-@media (max-width: 860px){
-  .dash-grid{grid-template-columns:1fr;}
-  .type-bar-label{width:110px; font-size:0.75rem;}
-}
 
 #photo-input{margin-top:4px;}
 #photo-preview{margin-top:10px;}
