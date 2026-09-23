@@ -37,7 +37,6 @@
         <a href="https://facebook.com/VOTRE-PAGE-A-COMPLETER" target="_blank">Facebook</a>
         <a href="#contact">Contact</a>
         <a href="#events">Événements</a>
-        <a href="#admin">Connexion</a>
       </div>
     </details>
   </nav>
@@ -218,32 +217,6 @@
     <h2>Événements</h2>
     <p id="events-placeholder">Aucun événement prévu pour le moment — suivez notre page Facebook pour les prochaines annonces.</p>
   </section>
-
-  <section class="panel" id="admin">
-    <h2>Connexion relais / autorités</h2>
-    <p class="admin-note">Réservé aux relais désignés — permet de mettre à jour la réponse des autorités et le statut de résolution des signalements.</p>
-
-    <div id="login-box">
-      <label for="admin-email">E-mail</label>
-      <input type="email" id="admin-email" placeholder="admin@exemple.sn">
-      <label for="admin-password">Mot de passe</label>
-      <input type="password" id="admin-password">
-      <button type="button" id="login-btn" class="submit-btn">Se connecter</button>
-      <p id="login-error" class="admin-error hidden"></p>
-    </div>
-
-    <div id="account-box" class="hidden">
-      <p>Connecté en tant que <strong id="account-email"></strong></p>
-      <button type="button" id="logout-btn">Se déconnecter</button>
-
-      <div class="password-change">
-        <label for="new-password">Changer mon mot de passe</label>
-        <input type="password" id="new-password" placeholder="Nouveau mot de passe (min. 6 caractères)">
-        <button type="button" id="change-password-btn" class="submit-btn">Mettre à jour le mot de passe</button>
-        <p id="password-change-msg" class="admin-error hidden"></p>
-      </div>
-    </div>
-  </section>
 </main>
 
 <footer>
@@ -254,8 +227,6 @@
 <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 <script src="firebase-config.js"></script>
 <script src="app.js"></script>
 <script>

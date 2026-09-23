@@ -1,7 +1,5 @@
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
-const auth = firebase.auth();
-const storage = firebase.storage();
 const reportsRef = db.ref("signalements");
 
 const COLORS = {
@@ -92,7 +90,7 @@ photoInput.addEventListener("change", () => {
   reader.readAsDataURL(file);
 });
 
-function compressImage(file, maxWidth = 900, quality = 0.7) {
+function compressImage(file, maxWidth = 700, quality = 0.6) {
   return new Promise((resolve) => {
     const img = new Image();
     const reader = new FileReader();
@@ -103,7 +101,7 @@ function compressImage(file, maxWidth = 900, quality = 0.7) {
       canvas.width = img.width * scale;
       canvas.height = img.height * scale;
       canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
-      canvas.toBlob((blob) => resolve(blob), "image/jpeg", quality);
+      resolve(canvas.toDataURL("image/jpeg", quality));
     };
     reader.readAsDataURL(file);
   });
@@ -119,7 +117,7 @@ function makeIcon(type, urgency) {
 }
 
 // ---------- Formulaire ----------
-document.getElementById("report-form").addEventListener("submit", (e) => {
+document.getElementById("report-form").addEventListener("submit", async (e) => {
   e.preventDefault();
   const type = document.querySelector('input[name="type"]:checked')?.value;
   const urgency = document.querySelector('input[name="urgency"]:checked')?.value;
@@ -131,6 +129,8 @@ document.getElementById("report-form").addEventListener("submit", (e) => {
   }
 
   const label = type === "autre" ? customLabel : LABELS[type];
+  const file = photoInput.files[0];
+  const photoBase64 = file ? await compressImage(file) : null;
 
   const report = {
     type, description, label, urgency,
@@ -139,24 +139,15 @@ document.getElementById("report-form").addEventListener("submit", (e) => {
     lat: selectedLatLng.lat, lng: selectedLatLng.lng,
     timestamp: Date.now()
   };
+  if (photoBase64) report.photoBase64 = photoBase64;
 
-  reportsRef.push(report).then((ref) => {
+  reportsRef.push(report).then(() => {
     e.target.reset();
     customTypeInput.classList.add("hidden");
     photoPreview.classList.add("hidden");
     if (marker) map.removeLayer(marker);
     selectedLatLng = null;
     document.getElementById("location-status").textContent = "ou touchez la carte pour placer le repère";
-
-    const file = photoInput.files[0];
-    if (file) {
-      compressImage(file).then((blob) => {
-        const photoRef = storage.ref(`photos/${ref.key}.jpg`);
-        photoRef.put(blob).then(() => photoRef.getDownloadURL()).then((url) => {
-          ref.update({ photoURL: url });
-        }).catch(() => { /* upload photo facultatif : on continue sans bloquer le signalement */ });
-      });
-    }
 
     const msg = encodeURIComponent(
       `Alerte citoyenne — ${label} (urgence : ${URGENCY[urgency].label})\n${description}\nLocalisation : https://www.google.com/maps?q=${report.lat},${report.lng}`
@@ -166,47 +157,9 @@ document.getElementById("report-form").addEventListener("submit", (e) => {
   });
 });
 
-// ---------- Authentification ----------
-let isAdmin = false;
-
-document.getElementById("login-btn").addEventListener("click", () => {
-  const email = document.getElementById("admin-email").value.trim();
-  const password = document.getElementById("admin-password").value;
-  const errEl = document.getElementById("login-error");
-  errEl.classList.add("hidden");
-  auth.signInWithEmailAndPassword(email, password).catch(() => {
-    errEl.textContent = "Connexion impossible : e-mail ou mot de passe incorrect.";
-    errEl.classList.remove("hidden");
-  });
-});
-
-document.getElementById("logout-btn").addEventListener("click", () => auth.signOut());
-
-document.getElementById("change-password-btn").addEventListener("click", () => {
-  const newPassword = document.getElementById("new-password").value;
-  const msgEl = document.getElementById("password-change-msg");
-  msgEl.classList.remove("hidden");
-  if (newPassword.length < 6) {
-    msgEl.textContent = "Le mot de passe doit contenir au moins 6 caractères.";
-    return;
-  }
-  auth.currentUser.updatePassword(newPassword).then(() => {
-    msgEl.textContent = "Mot de passe mis à jour avec succès.";
-    document.getElementById("new-password").value = "";
-  }).catch((err) => {
-    msgEl.textContent = err.code === "auth/requires-recent-login"
-      ? "Par sécurité, déconnectez-vous puis reconnectez-vous avant de changer le mot de passe."
-      : "Erreur : impossible de mettre à jour le mot de passe.";
-  });
-});
-
-auth.onAuthStateChanged((user) => {
-  isAdmin = !!user;
-  document.getElementById("login-box").classList.toggle("hidden", isAdmin);
-  document.getElementById("account-box").classList.toggle("hidden", !isAdmin);
-  if (user) document.getElementById("account-email").textContent = user.email;
-  renderList();
-});
+// Connexion des relais/autorités désactivée pour le moment.
+// Tous les signalements s'affichent en lecture seule (voir isAdmin ci-dessous).
+const isAdmin = false;
 
 // ---------- Liste, marqueurs, tableau de bord ----------
 const listEl = document.getElementById("report-list");
@@ -261,7 +214,7 @@ function renderReportItem(id, r) {
     </div>
     ${r.description}
     <span class="li-time">${time}</span>
-    ${r.photoURL ? `<img class="li-photo" src="${r.photoURL}" alt="Photo du signalement">` : ""}
+    ${r.photoBase64 ? `<img class="li-photo" src="${r.photoBase64}" alt="Photo du signalement">` : ""}
     ${controls}
     <div class="share-row">
       <a class="share-btn" target="_blank" href="https://wa.me/?text=${encodeURIComponent(`🚨 ${label} signalé via Alerte Citoyenne : ${r.description} — ${window.location.href.split('#')[0]}`)}">Partager WhatsApp</a>
@@ -349,7 +302,7 @@ function refreshMapLayers() {
   Object.values(reportsData).forEach((r) => {
     const m = L.marker([r.lat, r.lng], { icon: makeIcon(r.type, r.urgency) });
     const urg = URGENCY[r.urgency] || URGENCY.faible;
-    m.bindPopup(`<strong>${r.label}</strong><br>${r.description}<br><em>Urgence : ${urg.label}</em>${r.photoURL ? `<br><img src="${r.photoURL}" style="max-width:180px;border-radius:6px;margin-top:6px;">` : ""}`);
+    m.bindPopup(`<strong>${r.label}</strong><br>${r.description}<br><em>Urgence : ${urg.label}</em>${r.photoBase64 ? `<br><img src="${r.photoBase64}" style="max-width:180px;border-radius:6px;margin-top:6px;">` : ""}`);
     m.addTo(markersLayer);
     heatPoints.push([r.lat, r.lng, urg.weight]);
   });
