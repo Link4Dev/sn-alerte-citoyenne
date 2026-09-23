@@ -173,13 +173,64 @@ function statusLabel(field, value) {
   return "Non";
 }
 
-function renderReportItem(id, r) {
-  const label = r.label || LABELS[r.type] || "Incident";
-  const urg = URGENCY[r.urgency] || URGENCY.faible;
-  const time = new Date(r.timestamp).toLocaleString("fr-FR");
+// ---------- Regroupement des doublons (agent de détection) ----------
+const CLUSTER_DISTANCE_M = 150;      // deux signalements à moins de 150 m...
+const CLUSTER_TIME_WINDOW_MS = 72 * 3600 * 1000; // ...et à moins de 72h l'un de l'autre...
+const URGENCY_RANK = { faible: 1, moyenne: 2, elevee: 3 };
+
+function distanceMeters(lat1, lng1, lat2, lng2) {
+  const R = 6371000, toRad = (d) => (d * Math.PI) / 180;
+  const dLat = toRad(lat2 - lat1), dLng = toRad(lng2 - lng1);
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+// ...même type d'incident sont considérés comme le même événement et regroupés.
+function buildClusters(data) {
+  const clusters = [];
+  Object.entries(data).forEach(([id, r]) => {
+    const match = clusters.find((c) =>
+      c.type === r.type &&
+      distanceMeters(c.lat, c.lng, r.lat, r.lng) <= CLUSTER_DISTANCE_M &&
+      c.reports.some((m) => Math.abs(m.timestamp - r.timestamp) <= CLUSTER_TIME_WINDOW_MS)
+    );
+    if (match) {
+      match.reports.push({ id, ...r });
+      match.lat = match.reports.reduce((s, x) => s + x.lat, 0) / match.reports.length;
+      match.lng = match.reports.reduce((s, x) => s + x.lng, 0) / match.reports.length;
+    } else {
+      clusters.push({ type: r.type, lat: r.lat, lng: r.lng, reports: [{ id, ...r }] });
+    }
+  });
+
+  return clusters.map((c) => {
+    const reports = c.reports.sort((a, b) => b.timestamp - a.timestamp);
+    const urgency = reports.reduce((max, r) =>
+      URGENCY_RANK[r.urgency] > URGENCY_RANK[max] ? r.urgency : max, reports[0].urgency);
+    return {
+      ids: reports.map((r) => r.id),
+      type: c.type,
+      lat: c.lat, lng: c.lng,
+      label: reports[0].label,
+      urgency,
+      count: reports.length,
+      lastTimestamp: reports[0].timestamp,
+      description: reports[0].description,
+      photoBase64: reports.find((r) => r.photoBase64)?.photoBase64 || null,
+      reponseAutorites: reports.some((r) => r.reponseAutorites === "oui") ? "oui" : "non",
+      statutResolution: reports.some((r) => r.statutResolution === "oui") ? "oui"
+        : reports.some((r) => r.statutResolution === "en_cours") ? "en_cours" : "non",
+      allDescriptions: reports.map((r) => r.description),
+    };
+  });
+}
+
+function renderReportItem(cluster) {
+  const { label, type, urgency, count } = cluster;
+  const urg = URGENCY[urgency] || URGENCY.faible;
+  const time = new Date(cluster.lastTimestamp).toLocaleString("fr-FR");
 
   const li = document.createElement("li");
-  li.dataset.id = id;
 
   let controls;
   if (isAdmin) {
@@ -187,47 +238,55 @@ function renderReportItem(id, r) {
       <div class="admin-controls">
         <label>Réponse autorités
           <select class="reponse-select">
-            <option value="non" ${r.reponseAutorites !== "oui" ? "selected" : ""}>Non</option>
-            <option value="oui" ${r.reponseAutorites === "oui" ? "selected" : ""}>Oui</option>
+            <option value="non" ${cluster.reponseAutorites !== "oui" ? "selected" : ""}>Non</option>
+            <option value="oui" ${cluster.reponseAutorites === "oui" ? "selected" : ""}>Oui</option>
           </select>
         </label>
         <label>Statut
           <select class="statut-select">
-            <option value="non" ${r.statutResolution === "non" || !r.statutResolution ? "selected" : ""}>Non</option>
-            <option value="en_cours" ${r.statutResolution === "en_cours" ? "selected" : ""}>En cours</option>
-            <option value="oui" ${r.statutResolution === "oui" ? "selected" : ""}>Résolu</option>
+            <option value="non" ${cluster.statutResolution === "non" ? "selected" : ""}>Non</option>
+            <option value="en_cours" ${cluster.statutResolution === "en_cours" ? "selected" : ""}>En cours</option>
+            <option value="oui" ${cluster.statutResolution === "oui" ? "selected" : ""}>Résolu</option>
           </select>
         </label>
       </div>`;
   } else {
     controls = `
       <div class="status-badges">
-        <span class="status-badge">Autorités : ${statusLabel("reponse", r.reponseAutorites)}</span>
-        <span class="status-badge">Statut : ${statusLabel("statut", r.statutResolution)}</span>
+        <span class="status-badge">Autorités : ${statusLabel("reponse", cluster.reponseAutorites)}</span>
+        <span class="status-badge">Statut : ${statusLabel("statut", cluster.statutResolution)}</span>
       </div>`;
   }
 
+  const descriptionBlock = count > 1
+    ? `<details class="cluster-details">
+        <summary>${count} signalements combinés — voir le détail</summary>
+        <ul class="cluster-list">${cluster.allDescriptions.map((d) => `<li>${d}</li>`).join("")}</ul>
+      </details>`
+    : cluster.description;
+
   li.innerHTML = `
     <div class="li-top">
-      <span class="tag tag-${r.type}">${label}</span>
+      <span class="tag tag-${type}">${label}</span>
       <span class="urgency-badge" style="background:${urg.color}">${urg.label}</span>
+      ${count > 1 ? `<span class="count-badge">×${count}</span>` : ""}
     </div>
-    ${r.description}
-    <span class="li-time">${time}</span>
-    ${r.photoBase64 ? `<img class="li-photo" src="${r.photoBase64}" alt="Photo du signalement">` : ""}
+    ${descriptionBlock}
+    <span class="li-time">Dernier signalement : ${time}</span>
+    ${cluster.photoBase64 ? `<img class="li-photo" src="${cluster.photoBase64}" alt="Photo du signalement">` : ""}
     ${controls}
     <div class="share-row">
-      <a class="share-btn" target="_blank" href="https://wa.me/?text=${encodeURIComponent(`🚨 ${label} signalé via Alerte Citoyenne : ${r.description} — ${window.location.href.split('#')[0]}`)}">Partager WhatsApp</a>
+      <a class="share-btn" target="_blank" href="https://wa.me/?text=${encodeURIComponent(`🚨 ${label} signalé via Alerte Citoyenne${count > 1 ? ` (par ${count} personnes)` : ""} : ${cluster.description} — ${window.location.href.split('#')[0]}`)}">Partager WhatsApp</a>
       <a class="share-btn" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href.split('#')[0])}">Partager Facebook</a>
     </div>
   `;
 
   if (isAdmin) {
     li.querySelector(".reponse-select").addEventListener("change", (e) => {
-      reportsRef.child(id).update({ reponseAutorites: e.target.value });
+      cluster.ids.forEach((id) => reportsRef.child(id).update({ reponseAutorites: e.target.value }));
     });
     li.querySelector(".statut-select").addEventListener("change", (e) => {
-      reportsRef.child(id).update({ statutResolution: e.target.value });
+      cluster.ids.forEach((id) => reportsRef.child(id).update({ statutResolution: e.target.value }));
     });
   }
 
@@ -236,18 +295,21 @@ function renderReportItem(id, r) {
 
 function renderList() {
   listEl.innerHTML = "";
-  Object.entries(reportsData)
-    .sort((a, b) => b[1].timestamp - a[1].timestamp)
-    .forEach(([id, r]) => listEl.appendChild(renderReportItem(id, r)));
+  buildClusters(reportsData)
+    .sort((a, b) => b.lastTimestamp - a.lastTimestamp)
+    .forEach((cluster) => listEl.appendChild(renderReportItem(cluster)));
 }
 
 function updateDashboard() {
-  const values = Object.values(reportsData);
-  document.getElementById("dash-total").textContent = values.length;
+  const clusters = buildClusters(reportsData);
+  const rawTotal = Object.keys(reportsData).length;
 
-  const total = values.length || 1;
-  const responded = values.filter((r) => r.reponseAutorites === "oui").length;
-  const resolved = values.filter((r) => r.statutResolution === "oui").length;
+  document.getElementById("dash-total").textContent = clusters.length;
+  document.getElementById("dash-total-sub").textContent = `sur ${rawTotal} signalement${rawTotal > 1 ? "s" : ""} reçu${rawTotal > 1 ? "s" : ""}`;
+
+  const total = clusters.length || 1;
+  const responded = clusters.filter((c) => c.reponseAutorites === "oui").length;
+  const resolved = clusters.filter((c) => c.statutResolution === "oui").length;
   document.getElementById("dash-response-rate").textContent = `${Math.round((responded / total) * 100)} %`;
   document.getElementById("dash-resolution-rate").textContent = `${Math.round((resolved / total) * 100)} %`;
 
@@ -260,10 +322,10 @@ function updateDashboard() {
     byDay[d.toISOString().slice(0, 10)] = 0;
   }
 
-  values.forEach((r) => {
-    if (byUrgency[r.urgency] !== undefined) byUrgency[r.urgency]++;
-    byType[r.type] = (byType[r.type] || 0) + 1;
-    const day = new Date(r.timestamp).toISOString().slice(0, 10);
+  clusters.forEach((c) => {
+    if (byUrgency[c.urgency] !== undefined) byUrgency[c.urgency]++;
+    byType[c.type] = (byType[c.type] || 0) + 1;
+    const day = new Date(c.lastTimestamp).toISOString().slice(0, 10);
     if (byDay[day] !== undefined) byDay[day]++;
   });
 
@@ -299,15 +361,22 @@ function updateDashboard() {
 function refreshMapLayers() {
   markersLayer.clearLayers();
   const heatPoints = [];
-  Object.values(reportsData).forEach((r) => {
-    const m = L.marker([r.lat, r.lng], { icon: makeIcon(r.type, r.urgency) });
-    const urg = URGENCY[r.urgency] || URGENCY.faible;
-    m.bindPopup(`<strong>${r.label}</strong><br>${r.description}<br><em>Urgence : ${urg.label}</em>${r.photoBase64 ? `<br><img src="${r.photoBase64}" style="max-width:180px;border-radius:6px;margin-top:6px;">` : ""}`);
+  const clusters = buildClusters(reportsData);
+
+  clusters.forEach((c) => {
+    const m = L.marker([c.lat, c.lng], { icon: makeIcon(c.type, c.urgency) });
+    const urg = URGENCY[c.urgency] || URGENCY.faible;
+    const countLine = c.count > 1 ? `<br><strong>${c.count} signalements combinés</strong>` : "";
+    m.bindPopup(`<strong>${c.label}</strong>${countLine}<br>${c.description}<br><em>Urgence : ${urg.label}</em>${c.photoBase64 ? `<br><img src="${c.photoBase64}" style="max-width:180px;border-radius:6px;margin-top:6px;">` : ""}`);
     m.addTo(markersLayer);
-    heatPoints.push([r.lat, r.lng, urg.weight]);
+  });
+
+  Object.values(reportsData).forEach((r) => {
+    const w = URGENCY[r.urgency] ? URGENCY[r.urgency].weight : 0.3;
+    heatPoints.push([r.lat, r.lng, w]);
   });
   if (heatLayer) heatLayer.setLatLngs(heatPoints);
-  countEl.textContent = Object.keys(reportsData).length;
+  countEl.textContent = clusters.length;
 }
 
 reportsRef.limitToLast(500).on("child_added", (snap) => {

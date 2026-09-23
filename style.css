@@ -329,3 +329,12 @@ html{scroll-behavior:smooth; scroll-padding-top:90px;}
   border:1px solid var(--line); background:var(--card); cursor:pointer; color:var(--ink); text-decoration:none;
 }
 .share-btn:hover{background:var(--sand);}
+
+.dash-total-sub{font-size:0.72rem; color:#8a9490; margin-top:2px;}
+.count-badge{
+  background:var(--ink); color:white; font-size:0.7rem; font-weight:700;
+  padding:2px 7px; border-radius:20px;
+}
+.cluster-details summary{cursor:pointer; font-weight:600; color:var(--accent); font-size:0.88rem;}
+.cluster-list{margin:8px 0 0; padding-left:18px; font-size:0.85rem;}
+.cluster-list li{margin-bottom:4px;}
