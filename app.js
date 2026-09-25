@@ -1,16 +1,21 @@
 firebase.initializeApp(firebaseConfig);
+
+if (RECAPTCHA_SITE_KEY && RECAPTCHA_SITE_KEY !== "VOTRE_CLE_RECAPTCHA_V3") {
+  firebase.appCheck().activate(RECAPTCHA_SITE_KEY, true);
+}
+
 const db = firebase.database();
 const reportsRef = db.ref("signalements");
 
 const COLORS = {
   coupure: "#E8A33D", eau: "#5B8FB0", inondation: "#2E6F95",
   voirie: "#8A6D3B", dechets: "#6B7A3F", incendie: "#C1440E",
-  securite: "#7A3B69", autre: "#B23A2E"
+  securite: "#7A3B69", police: "#1D3557", gendarmerie: "#4A5568", autre: "#B23A2E"
 };
 const LABELS = {
   coupure: "Coupure de courant", eau: "Coupure d'eau", inondation: "Zone inondée",
   voirie: "Route endommagée", dechets: "Déchets non collectés", incendie: "Incendie",
-  securite: "Insécurité", Police: "intervention police" , autre: "Autre incident"
+  securite: "Insécurité", police: "Police Nationale", gendarmerie: "Gendarmerie Nationale", autre: "Autre incident"
 };
 const URGENCY = {
   faible: { label: "Faible", color: "#3F6B4D", weight: 0.3 },
@@ -399,3 +404,77 @@ reportsRef.on("child_removed", (snap) => {
   renderList();
   updateDashboard();
 });
+
+// ---------- Copilote de synthèse (règles, sans IA ni coût) ----------
+async function reverseGeocode(lat, lng) {
+  try {
+    const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}&zoom=16`);
+    const data = await res.json();
+    const a = data.address || {};
+    return a.suburb || a.neighbourhood || a.quarter || a.village || a.town || a.city_district
+      || (data.display_name ? data.display_name.split(",")[0] : null);
+  } catch {
+    return null;
+  }
+}
+
+async function generateSynthesis() {
+  const outputEl = document.getElementById("synthesis-output");
+  const btn = document.getElementById("generate-synthesis-btn");
+  const clusters = buildClusters(reportsData);
+  const rawTotal = Object.keys(reportsData).length;
+
+  if (clusters.length === 0) {
+    outputEl.innerHTML = "<p>Pas encore assez de signalements pour générer une synthèse.</p>";
+    return;
+  }
+
+  btn.disabled = true;
+  outputEl.innerHTML = "<p>Analyse en cours…</p>";
+
+  const typeCounts = {};
+  clusters.forEach((c) => { typeCounts[c.type] = (typeCounts[c.type] || 0) + 1; });
+  const [topType, topTypeCount] = Object.entries(typeCounts).sort((a, b) => b[1] - a[1])[0];
+  const topTypePct = Math.round((topTypeCount / clusters.length) * 100);
+
+  const eleveeCount = clusters.filter((c) => c.urgency === "elevee").length;
+  const urgencePct = Math.round((eleveeCount / clusters.length) * 100);
+
+  const now = Date.now(), DAY = 86400000;
+  const last7 = Object.values(reportsData).filter((r) => now - r.timestamp <= 7 * DAY).length;
+  const prev7 = Object.values(reportsData).filter((r) => now - r.timestamp > 7 * DAY && now - r.timestamp <= 14 * DAY).length;
+  let trendPhrase;
+  if (prev7 === 0 && last7 === 0) trendPhrase = "stable, sans signalement sur les deux dernières semaines";
+  else if (prev7 === 0) trendPhrase = "en forte hausse par rapport à la semaine précédente (aucun signalement alors)";
+  else {
+    const change = Math.round(((last7 - prev7) / prev7) * 100);
+    if (change > 20) trendPhrase = `en hausse de ${change} % par rapport à la semaine précédente`;
+    else if (change < -20) trendPhrase = `en baisse de ${Math.abs(change)} % par rapport à la semaine précédente`;
+    else trendPhrase = "globalement stable par rapport à la semaine précédente";
+  }
+
+  const responsePct = Math.round((clusters.filter((c) => c.reponseAutorites === "oui").length / clusters.length) * 100);
+  const resolutionPct = Math.round((clusters.filter((c) => c.statutResolution === "oui").length / clusters.length) * 100);
+
+  const hotspot = clusters.reduce((max, c) => (c.count > max.count ? c : max), clusters[0]);
+  let hotspotPhrase = "";
+  if (hotspot.count > 1) {
+    const place = await reverseGeocode(hotspot.lat, hotspot.lng);
+    hotspotPhrase = place
+      ? ` Le point le plus signalé concerne une « ${LABELS[hotspot.type].toLowerCase()} » près de ${place}, avec ${hotspot.count} signalements distincts au même endroit.`
+      : ` Le point le plus signalé concerne une « ${LABELS[hotspot.type].toLowerCase()} », avec ${hotspot.count} signalements distincts au même endroit.`;
+  }
+
+  const paragraphs = [
+    `Sur la période observée, <strong>${clusters.length} incident${clusters.length > 1 ? "s" : ""} unique${clusters.length > 1 ? "s" : ""}</strong> ${clusters.length > 1 ? "ont" : "a"} été recensé${clusters.length > 1 ? "s" : ""} (${rawTotal} signalement${rawTotal > 1 ? "s" : ""} au total en comptant les doublons).`,
+    `Le type le plus fréquent est « <strong>${LABELS[topType]}</strong> », représentant ${topTypePct} % des incidents.${hotspotPhrase}`,
+    `<strong>${urgencePct} %</strong> des incidents sont classés en urgence élevée${urgencePct >= 30 ? " — une part importante qui mérite une attention prioritaire." : "."}`,
+    `Le volume de signalements est <strong>${trendPhrase}</strong>.`,
+    `Les autorités ont répondu à ${responsePct} % des incidents, et ${resolutionPct} % ont été marqués comme résolus.${responsePct < 30 ? " Le taux de réponse reste faible — un axe d'amélioration prioritaire." : ""}`,
+  ];
+
+  outputEl.innerHTML = paragraphs.map((p) => `<p>${p}</p>`).join("");
+  btn.disabled = false;
+}
+
+document.getElementById("generate-synthesis-btn").addEventListener("click", generateSynthesis);

@@ -9,6 +9,8 @@
   --dechets:#6B7A3F;
   --incendie:#C1440E;
   --securite:#7A3B69;
+  --police:#1D3557;
+  --gendarmerie:#4A5568;
   --autre:#B23A2E;
   --accent:#3F6B4D;
   --card:#FFFFFF;
@@ -75,6 +77,8 @@ textarea{
 .dot-dechets{background:var(--dechets);}
 .dot-incendie{background:var(--incendie);}
 .dot-securite{background:var(--securite);}
+.dot-police{background:var(--police);}
+.dot-gendarmerie{background:var(--gendarmerie);}
 .dot-autre{background:var(--autre);}
 
 .location-row{display:flex; align-items:center; gap:10px; flex-wrap:wrap;}
@@ -115,6 +119,8 @@ textarea{
 .tag-dechets{background:var(--dechets);}
 .tag-incendie{background:var(--incendie);}
 .tag-securite{background:var(--securite);}
+.tag-police{background:var(--police);}
+.tag-gendarmerie{background:var(--gendarmerie);}
 .tag-autre{background:var(--autre);}
 .li-time{color:#8a9490; font-size:0.78rem; display:block; margin-top:2px;}
 
@@ -338,3 +344,8 @@ html{scroll-behavior:smooth; scroll-padding-top:90px;}
 .cluster-details summary{cursor:pointer; font-weight:600; color:var(--accent); font-size:0.88rem;}
 .cluster-list{margin:8px 0 0; padding-left:18px; font-size:0.85rem;}
 .cluster-list li{margin-bottom:4px;}
+
+.dash-synthesis{grid-column:1 / -1;}
+.synthesis-output{margin-top:12px; font-size:0.9rem; line-height:1.55;}
+.synthesis-output p{margin:0 0 8px;}
+.synthesis-output p:last-child{margin-bottom:0;}

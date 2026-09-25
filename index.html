@@ -80,6 +80,14 @@
           <input type="radio" name="type" value="securite">
           <span class="dot dot-securite"></span> Insécurité
         </label>
+        <label class="type-option" data-type="police">
+          <input type="radio" name="type" value="police">
+          <span class="dot dot-police"></span> Police Nationale
+        </label>
+        <label class="type-option" data-type="gendarmerie">
+          <input type="radio" name="type" value="gendarmerie">
+          <span class="dot dot-gendarmerie"></span> Gendarmerie Nationale
+        </label>
         <label class="type-option" data-type="autre">
           <input type="radio" name="type" value="autre">
           <span class="dot dot-autre"></span> Autre (précisez)
@@ -200,6 +208,11 @@
         <h3>Tendance — 14 derniers jours</h3>
         <div id="dash-trend-chart" class="trend-chart"></div>
       </div>
+      <div class="dash-card dash-synthesis">
+        <h3>🧭 Synthèse de la période</h3>
+        <button type="button" id="generate-synthesis-btn" class="map-view-btn">Générer une synthèse</button>
+        <div id="synthesis-output" class="synthesis-output"></div>
+      </div>
     </div>
   </section>
 
@@ -228,6 +241,7 @@
 <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-check-compat.js"></script>
 <script src="firebase-config.js"></script>
 <script src="app.js"></script>
 <script>
