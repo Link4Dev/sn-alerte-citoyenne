@@ -10,7 +10,7 @@ const COLORS = {
 const LABELS = {
   coupure: "Coupure de courant", eau: "Coupure d'eau", inondation: "Zone inondée",
   voirie: "Route endommagée", dechets: "Déchets non collectés", incendie: "Incendie",
-  securite: "Insécurité", autre: "Autre incident"
+  securite: "Insécurité", Police: "intervention police" , autre: "Autre incident"
 };
 const URGENCY = {
   faible: { label: "Faible", color: "#3F6B4D", weight: 0.3 },
