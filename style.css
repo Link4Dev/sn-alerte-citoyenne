@@ -349,3 +349,21 @@ html{scroll-behavior:smooth; scroll-padding-top:90px;}
 .synthesis-output{margin-top:12px; font-size:0.9rem; line-height:1.55;}
 .synthesis-output p{margin:0 0 8px;}
 .synthesis-output p:last-child{margin-bottom:0;}
+
+.assistant-row{display:flex; flex-direction:column; gap:8px;}
+#assistant-input{
+  width:100%; min-height:60px; padding:10px; border:1px solid var(--accent);
+  border-radius:6px; font-family:inherit; font-size:0.9rem; resize:vertical;
+}
+#assistant-fill-btn{
+  align-self:flex-start; background:var(--accent); color:white; border:none;
+  border-radius:6px; padding:8px 14px; font-size:0.85rem; font-weight:600; cursor:pointer;
+}
+.assistant-feedback{
+  font-size:0.85rem; background:#F1F6F0; border:1px solid var(--accent);
+  border-radius:6px; padding:8px 12px; margin-top:8px;
+}
+.photo-analysis{
+  font-size:0.82rem; color:var(--ink); background:var(--sand); border:1px solid var(--line);
+  border-radius:6px; padding:8px 12px; margin-top:8px;
+}

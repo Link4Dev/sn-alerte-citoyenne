@@ -50,6 +50,13 @@
   <section class="panel form-panel" id="form">
     <h2>Signaler un incident</h2>
     <form id="report-form">
+      <label for="assistant-input">✨ Décrivez ce qui se passe (l'assistant pré-remplit le formulaire)</label>
+      <div class="assistant-row">
+        <textarea id="assistant-input" placeholder="Ex : Y'a une grosse fuite d'eau qui inonde la rue depuis ce matin, c'est urgent"></textarea>
+        <button type="button" id="assistant-fill-btn">Remplir automatiquement</button>
+      </div>
+      <p id="assistant-feedback" class="assistant-feedback hidden"></p>
+
       <label>Type d'incident</label>
       <div class="type-choice">
         <label class="type-option" data-type="coupure">
@@ -123,6 +130,7 @@
       <label for="photo-input">Photo (facultatif)</label>
       <input type="file" id="photo-input" accept="image/*" capture="environment">
       <div id="photo-preview" class="hidden"><img id="photo-preview-img" alt="Aperçu de la photo"></div>
+      <p id="photo-analysis" class="photo-analysis hidden"></p>
 
       <button type="submit" class="submit-btn">Envoyer le signalement</button>
     </form>

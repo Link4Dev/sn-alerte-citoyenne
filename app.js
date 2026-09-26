@@ -67,7 +67,67 @@ const customTypeInput = document.getElementById("custom-type");
 document.querySelectorAll('input[name="type"]').forEach((radio) => {
   radio.addEventListener("change", () => {
     customTypeInput.classList.toggle("hidden", radio.value !== "autre" || !radio.checked);
+    runPhotoAnalysis();
   });
+});
+
+// ---------- Assistant conversationnel (mots-clés, sans IA ni coût) ----------
+function normalize(str) {
+  return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+}
+
+const TYPE_KEYWORDS = {
+  coupure: ["courant", "electricite", "electrique", "delestage", "lumiere", "black-out"],
+  eau: ["robinet", "fuite d'eau", "plus d'eau", "coupure d'eau", "sans eau"],
+  inondation: ["inond", "eau qui monte", "deborde", "flaque", "submerge", "rue inondee"],
+  voirie: ["nid de poule", "route", "chaussee", "bitume", "pont", "trou dans la route"],
+  dechets: ["poubelle", "dechet", "ordure", "detritus", "decharge"],
+  incendie: ["feu", "incendie", "flamme", "brule", "fumee"],
+  securite: ["vol", "agress", "insecur", "bandit", "attaque", "braquage"],
+  police: ["police"],
+  gendarmerie: ["gendarme"],
+};
+const URGENCY_KEYWORDS = {
+  elevee: ["urgent", "grave", "danger", "blesse", "mort", "immediat", "catastrophe", "tres grave"],
+  faible: ["leger", "petit", "mineur", "pas grave", "rien de grave"],
+};
+
+document.getElementById("assistant-fill-btn").addEventListener("click", () => {
+  const raw = document.getElementById("assistant-input").value.trim();
+  const feedback = document.getElementById("assistant-feedback");
+  feedback.classList.remove("hidden");
+
+  if (!raw) {
+    feedback.textContent = "Décrivez d'abord la situation dans la zone de texte ci-dessus.";
+    return;
+  }
+
+  const text = normalize(raw);
+  let bestType = null, bestScore = 0;
+  Object.entries(TYPE_KEYWORDS).forEach(([type, words]) => {
+    const score = words.filter((w) => text.includes(normalize(w))).length;
+    if (score > bestScore) { bestScore = score; bestType = type; }
+  });
+
+  let urgency = "moyenne";
+  if (URGENCY_KEYWORDS.elevee.some((w) => text.includes(w))) urgency = "elevee";
+  else if (URGENCY_KEYWORDS.faible.some((w) => text.includes(w))) urgency = "faible";
+
+  document.getElementById("description").value = raw;
+
+  const urgencyRadio = document.querySelector(`input[name="urgency"][value="${urgency}"]`);
+  if (urgencyRadio) urgencyRadio.checked = true;
+
+  if (bestType) {
+    const typeRadio = document.querySelector(`input[name="type"][value="${bestType}"]`);
+    if (typeRadio) {
+      typeRadio.checked = true;
+      typeRadio.dispatchEvent(new Event("change"));
+    }
+    feedback.textContent = `J'ai détecté : ${LABELS[bestType]}, urgence ${URGENCY[urgency].label.toLowerCase()}. Vérifiez et complétez l'emplacement ci-dessous.`;
+  } else {
+    feedback.textContent = `Je n'ai pas identifié de type précis — merci de le choisir vous-même ci-dessous. Urgence suggérée : ${URGENCY[urgency].label.toLowerCase()}.`;
+  }
 });
 
 document.getElementById("locate-btn").addEventListener("click", () => {
@@ -83,17 +143,75 @@ document.getElementById("locate-btn").addEventListener("click", () => {
 const photoInput = document.getElementById("photo-input");
 const photoPreview = document.getElementById("photo-preview");
 const photoPreviewImg = document.getElementById("photo-preview-img");
+const photoAnalysisEl = document.getElementById("photo-analysis");
 
 photoInput.addEventListener("change", () => {
   const file = photoInput.files[0];
-  if (!file) { photoPreview.classList.add("hidden"); return; }
+  if (!file) {
+    photoPreview.classList.add("hidden");
+    photoAnalysisEl.classList.add("hidden");
+    return;
+  }
   const reader = new FileReader();
   reader.onload = (e) => {
     photoPreviewImg.src = e.target.result;
     photoPreview.classList.remove("hidden");
+    photoPreviewImg.onload = () => runPhotoAnalysis();
   };
   reader.readAsDataURL(file);
 });
+
+// ---------- Analyse de photo par couleurs dominantes (règles, sans IA) ----------
+// Signal utile uniquement pour l'eau/inondation (tons troubles) et l'incendie (flammes/fumée).
+function analyzePhotoColors(img, type) {
+  const canvas = document.createElement("canvas");
+  const size = 80;
+  canvas.width = size; canvas.height = size;
+  const ctx = canvas.getContext("2d");
+  ctx.drawImage(img, 0, 0, size, size);
+  const data = ctx.getImageData(0, 0, size, size).data;
+
+  let match = 0, total = 0;
+  for (let i = 0; i < data.length; i += 4) {
+    const r = data[i], g = data[i + 1], b = data[i + 2];
+    total++;
+    if (type === "incendie") {
+      const fireColor = r > 150 && g > 60 && g < 210 && b < 100;
+      const smoke = Math.abs(r - g) < 15 && Math.abs(g - b) < 15 && r > 60 && r < 160;
+      if (fireColor || smoke) match++;
+    } else {
+      const murky = r > 60 && r < 180 && g > 50 && g < 160 && b > 40 && b < 150 && r >= g - 5 && g >= b - 15;
+      const greyBlue = b >= r - 10 && b >= g - 10 && b > 80;
+      if (murky || greyBlue) match++;
+    }
+  }
+  return total ? match / total : 0;
+}
+
+function runPhotoAnalysis() {
+  const file = photoInput.files[0];
+  const type = document.querySelector('input[name="type"]:checked')?.value;
+  if (!file || !["inondation", "eau", "incendie"].includes(type) || !photoPreviewImg.complete) {
+    photoAnalysisEl.classList.add("hidden");
+    return;
+  }
+  const ratio = analyzePhotoColors(photoPreviewImg, type);
+  const pct = Math.round(ratio * 100);
+  let suggestion = ratio > 0.35 ? "elevee" : ratio > 0.15 ? "moyenne" : "faible";
+  const zone = type === "incendie" ? "flammes/fumée" : "eau/zone submergée";
+
+  photoAnalysisEl.classList.remove("hidden");
+  photoAnalysisEl.innerHTML =
+    `🔍 Analyse (expérimentale, basée sur les couleurs) : environ ${pct}% de la photo évoque ${zone} — ` +
+    `suggestion d'urgence : <strong>${URGENCY[suggestion].label}</strong>. ` +
+    `<a href="#" id="apply-photo-suggestion">Appliquer</a>`;
+
+  document.getElementById("apply-photo-suggestion").addEventListener("click", (e) => {
+    e.preventDefault();
+    const radio = document.querySelector(`input[name="urgency"][value="${suggestion}"]`);
+    if (radio) radio.checked = true;
+  });
+}
 
 function compressImage(file, maxWidth = 700, quality = 0.6) {
   return new Promise((resolve) => {
