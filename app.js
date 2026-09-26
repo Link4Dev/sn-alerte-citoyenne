@@ -1,6 +1,6 @@
 firebase.initializeApp(firebaseConfig);
 
-if (RECAPTCHA_SITE_KEY && RECAPTCHA_SITE_KEY !== "VOTRE_CLE_RECAPTCHA_V3") {
+if (typeof RECAPTCHA_SITE_KEY !== "undefined" && RECAPTCHA_SITE_KEY && RECAPTCHA_SITE_KEY !== "VOTRE_CLE_RECAPTCHA_V3") {
   firebase.appCheck().activate(RECAPTCHA_SITE_KEY, true);
 }
 
