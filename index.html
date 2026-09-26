@@ -23,7 +23,14 @@
       <p class="tagline">Coupures, inondations, incidents — signalés en temps réel</p>
     </div>
   </div>
-  <nav class="top-nav">
+
+  <button class="hamburger-btn" id="hamburger-btn" aria-label="Ouvrir le menu" aria-expanded="false">
+    <span></span>
+    <span></span>
+    <span></span>
+  </button>
+
+  <nav class="top-nav" id="top-nav">
     <a href="#form">Signaler</a>
     <a href="#map">Carte</a>
     <a href="#dashboard">Tableau de bord</a>
@@ -44,7 +51,6 @@
     <div><strong id="count-total">0</strong><span>signalements</span></div>
   </div>
 </header>
-
 
 <main>
   <section class="panel form-panel" id="form">
@@ -256,6 +262,35 @@
   if ("serviceWorker" in navigator) {
     window.addEventListener("load", () => navigator.serviceWorker.register("sw.js"));
   }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    const hamburgerBtn = document.getElementById('hamburger-btn');
+    const topNav = document.getElementById('top-nav');
+
+    if (hamburgerBtn && topNav) {
+      hamburgerBtn.addEventListener('click', function() {
+        const isOpen = topNav.classList.toggle('active');
+        hamburgerBtn.classList.toggle('active', isOpen);
+        hamburgerBtn.setAttribute('aria-expanded', String(isOpen));
+      });
+
+      topNav.querySelectorAll('a').forEach(link => {
+        link.addEventListener('click', function() {
+          topNav.classList.remove('active');
+          hamburgerBtn.classList.remove('active');
+          hamburgerBtn.setAttribute('aria-expanded', 'false');
+        });
+      });
+
+      document.addEventListener('click', function(event) {
+        if (!event.target.closest('.site-header')) {
+          topNav.classList.remove('active');
+          hamburgerBtn.classList.remove('active');
+          hamburgerBtn.setAttribute('aria-expanded', 'false');
+        }
+      });
+    }
+  });
 </script>
 </body>
 </html>
